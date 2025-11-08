@@ -3,7 +3,7 @@
 A modern, responsive admin panel for managing car dealership operations built with React, TypeScript, and Tailwind CSS.
 
 ## Features
-
+ 
 ### 🚗 Vehicle Management
 - **Comprehensive CRUD Operations**: Create, read, update, and delete vehicles
 - **Advanced Filtering**: Filter by brand, fuel type, transmission, condi   tion, price range, and year

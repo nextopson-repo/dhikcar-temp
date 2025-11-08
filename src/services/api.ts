@@ -37,6 +37,8 @@ interface TempCarRaw {
   transmission?: string;
   address?: TempCarAddressRaw;
   user?: TempCarUserRaw;
+  message?: string;
+  car?:string
 }
 
 interface TempCarsResponseRaw {
@@ -106,6 +108,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
+      mode: "cors",
     });
   }
 
@@ -113,6 +116,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
+      mode: "cors",
     });
   }
 
@@ -120,6 +124,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(data),
+      mode: "cors",
     });
   }
 
@@ -240,6 +245,7 @@ export class VehicleApiService {
               Authorization: `Bearer ${sessionToken}`,
             },
             body: formData,
+            mode: "cors",
           });
 
       const data = await response.json();
@@ -279,6 +285,7 @@ export class VehicleApiService {
           Authorization: `Bearer ${sessionToken}`,
         },
         body: formData,
+        mode: "cors",
       });
 
       const data = await response.json();
@@ -300,7 +307,6 @@ export class VehicleApiService {
       };
     }
   }
-
 }
 
 // User API Service

@@ -7,6 +7,7 @@ import {
   handleApiError,
 } from "../services/api";
 import type { ApiResponse } from "../services/api";
+import toast from "react-hot-toast";
 
 // Generic API hook for async operations
 export function useApi<T>() {
@@ -244,20 +245,21 @@ export function useVehicleOperations() {
 
   const uploadCar = useCallback(async (formData: FormData) => {
     if (!formData || !(formData instanceof FormData)) {
-      console.warn("uploadCar skipped: invalid or missing FormData");
+      toast("uploadCar skipped: invalid or missing FormData");
       return null;
     }
 
     setLoading(true);
     setError(null);
 
-    console.log("inUploadCar contents:");
-    formData.forEach((value, key) => {
-      console.log(key, value);
-    });
+    // alert("inUploadCar contents:");
+    // formData.forEach((value, key) => {
+    // console.log(key, value);
+    // });
 
     try {
       const response = await VehicleApiService.uploadCar(formData);
+      // console.log("err detect:",response)
 
       if (response.success && response.data) {
         console.log("Upload successful:", response.data);
@@ -266,13 +268,13 @@ export function useVehicleOperations() {
         const errorMsg = response.error || "Failed to upload car";
         setError(errorMsg);
         console.error("Upload failed:", errorMsg);
-        return null;
+        return errorMsg;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Upload failed";
       setError(errorMessage);
-      console.error("Upload error:", errorMessage);
-      return null;
+      toast.error(errorMessage);
+      return err;
     } finally {
       setLoading(false);
     }
@@ -280,7 +282,7 @@ export function useVehicleOperations() {
 
   return {
     loading,
-    error: error ? handleApiError(error) : null,
+    error: error ? error : null,
     createVehicle,
     // updateVehicle,
     deleteVehicle,
@@ -619,6 +621,7 @@ export function useAuthState() {
         setIsAuthenticated(true);
       } catch (error) {
         // Clear invalid data
+        console.log(error)
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
       }

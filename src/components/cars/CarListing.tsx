@@ -136,20 +136,18 @@ const CarListing: React.FC = () => {
     try {
       const result = await uploadCar(formDataToSend);
 
-      if (result && result.car) {
+      if (result) {
         toast.success("Vehicle uploaded successfully!");
-        console.log("Uploaded vehicle:", result.car);
+        // console.log("Uploaded vehicle:", result.car);
         fetchMore();
       } else {
-        const errorMessage =
-          "Failed to upload vehicle. Please check the console for details.";
-        toast.error(errorMessage);
+        toast.error("Upload failed: result");
         console.error("Upload failed:", result);
       }
-    } catch (error) {
+    }catch (error){
       console.error("Upload error:", error);
       toast.error("Something went wrong while uploading. Please try again.");
-    } finally {
+    }finally {
       setModalState({ isOpen: false, mode: "create", vehicle: null });
     }
   };

@@ -94,7 +94,7 @@ function Dropdown({
             filteredOptions.map((opt) => (
               <li
                 key={opt}
-                onMouseDown={(e) => e.preventDefault()} // Prevent input blur
+                onMouseDown={(e) => e.preventDefault()} 
                 onClick={() => handleOptionSelect(opt)}
                 className={`px-3 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
                   value === opt ? "bg-blue-100 font-medium text-blue-800" : ""

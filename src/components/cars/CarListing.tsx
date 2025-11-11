@@ -135,10 +135,12 @@ const CarListing: React.FC = () => {
 
     try {
       const result = await uploadCar(formDataToSend);
-      if (result && result?.car) {
+      
+      // Check if result.car is a non-empty object
+      if (result && typeof result === 'object' && result.car && typeof result.car === 'object' && Object.keys(result.car).length > 0) {
         toast.success("Vehicle uploaded successfully!");
         fetchMore();
-        setModalState({ isOpen: false, mode: "create", vehicle: result?.car });
+        setModalState({ isOpen: false, mode: "create", vehicle: null });
       } else {
         toast.error("Upload failed. Please try again.");
         console.error("Upload failed:", result);

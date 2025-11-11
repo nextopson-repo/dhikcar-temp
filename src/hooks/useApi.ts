@@ -259,22 +259,23 @@ export function useVehicleOperations() {
 
     try {
       const response = await VehicleApiService.uploadCar(formData);
-      // console.log("err detect:",response)
 
-      if (response.success && response.data) {
+      // Only return success if we have both success flag and car data
+      if (response.success && response.data && response.data.car) {
         console.log("Upload successful:", response.data);
         return response.data; // Returns { car: TempCarRaw }
       } else {
         const errorMsg = response.error || "Failed to upload car";
         setError(errorMsg);
         console.error("Upload failed:", errorMsg);
+        toast.error(errorMsg);
         return errorMsg;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Upload failed";
       setError(errorMessage);
       toast.error(errorMessage);
-      return err;
+      return errorMessage;
     } finally {
       setLoading(false);
     }

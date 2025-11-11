@@ -270,36 +270,36 @@ export class VehicleApiService {
   // Upload car to temp system
   static async uploadCar(formData: FormData): Promise<ApiResponse<{ car: TempCarRaw }>> {
     try {
-      const sessionToken = localStorage.getItem('sessionToken');
+      // Get session token for authorization
+      const sessionToken = localStorage.getItem('sessionToken') || localStorage.getItem('authToken');
       
-      if (!sessionToken) {
-        return {
-          success: false,
-          error: 'No session token found. Please login again.',
-        };
+      // Build headers - DO NOT set Content-Type for FormData, browser will set it with boundary
+      const headers: Record<string, string> = {};
+      
+      if (sessionToken) {
+        headers.Authorization = `Bearer ${sessionToken}`;
       }
 
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.UPLOAD_CAR}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
-        body: formData,
+        headers: headers,
+        body: formData, // Send FormData directly, don't convert to JSON
         mode: "cors",
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Car upload failed');
+      // Backend returns status 201 on success: { message: string, car: CarResponse }
+      if (response.status === 201 && data.car) {
+        return {
+          success: true,
+          data: { car: data.car },
+          message: data.message,
+        };
       }
 
-      // Backend returns: { message: string, car: CarResponse }
-      return {
-        success: true,
-        data: { car: data.car },
-        message: data.message,
-      };
+      // If status is not 201 or car is missing, treat as error
+      throw new Error(data.message || `Car upload failed: ${response.status}`);
     } catch (error) {
       return {
         success: false,

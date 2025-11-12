@@ -79,11 +79,13 @@ export function useVehicles(params?: {
     fetchVehicles();
   }, [fetchVehicles]);
 
+  // console.log("total cars: ", total)
+
   return {
     vehicles: data?.data || [],
     total: data?.total || 0,
     page: data?.page || 1,
-    limit: data?.limit || 10,
+    limit: data?.limit || 12,
     totalPages: data?.totalPages || 0,
     loading,
     error: error ? handleApiError(error) : null,

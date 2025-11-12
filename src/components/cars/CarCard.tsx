@@ -1,12 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Trash2, MapPin, Calendar, Fuel, Gauge, Settings, Car, Edit2, MoreVertical } from 'lucide-react';
-import type { Vehicle } from '../../types';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Trash2,
+  MapPin,
+  Calendar,
+  Fuel,
+  Gauge,
+  Settings,
+  Car,
+  Edit2,
+  MoreVertical,
+} from "lucide-react";
+import type { Vehicle } from "../../types";
 
 interface CarCardProps {
   vehicle: Vehicle;
   onDelete: (id: string) => void;
   onEdit: (vehicle: Vehicle) => void;
-  // onView: (vehicle: Vehicle) => void;
+  
 }
 
 const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
@@ -23,15 +33,15 @@ const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
       }
     }
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key === "Escape") setMenuOpen(false);
     }
     if (menuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [menuOpen]);
 
@@ -49,10 +59,40 @@ const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
     }
   };
 
+  const formatKms = (kms: number) => {
+    if (kms >= 100000) {
+      // 1L = 1,00,000 km
+      return `${(kms / 100000).toFixed(1)}L km`;
+    } else if (kms >= 1000) {
+      // 1K = 1,000 km
+      return `${(kms / 1000).toFixed(1)}K km`;
+    } else {
+      return `${kms} km`;
+    }
+  };
+
+  const timeAgo = (dateString: string | Date) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} day${days !== 1 ? "s" : ""} ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} month${months !== 1 ? "s" : ""} ago`;
+    const years = Math.floor(days / 365);
+    return `${years} year${years !== 1 ? "s" : ""} ago`;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
       {/* Image Section */}
-      <div className="relative h-48 sm:h-56 overflow-hidden">
+      <div className="relative h-48 overflow-hidden">
         {!imageError ? (
           <img
             src={vehicle.image || "/fallback-car-img.png"}
@@ -68,23 +108,15 @@ const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
             </div>
           </div>
         )}
-        
-        {/* Condition Badge */}
-        {/* <div className="absolute top-3 left-3">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            vehicle.condition === 'New' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-blue-100 text-blue-800'
-          }`}>
-            {vehicle.condition}
-          </span>
-        </div> */}
 
         {/* Action Menu */}
         <div className="absolute top-3 right-3 transition-opacity duration-300 cursor-pointer">
           <div className="relative cursor-pointer" ref={menuRef}>
             <button
-              onClick={(e) => { e.stopPropagation(); setMenuOpen(prev => !prev); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen((prev) => !prev);
+              }}
               className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors"
               title="Actions"
             >
@@ -93,14 +125,22 @@ const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
                 <button
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(vehicle); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onEdit(vehicle);
+                  }}
                   className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Edit2 className="w-4 h-4 text-blue-600" />
                   Edit
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(vehicle.id || ''); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    onDelete(vehicle.id || "");
+                  }}
                   className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -113,53 +153,54 @@ const CarCard: React.FC<CarCardProps> = ({ vehicle, onDelete, onEdit }) => {
       </div>
 
       {/* Content Section */}
-      <div className="p-4 sm:p-5">
+      <div className="p-4 sm:p-4">
         {/* Title and Brand */}
         <div className="mb-3">
           <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-1">
             {vehicle.brand} {vehicle.model}
           </h3>
-          <p className="text-sm text-gray-600">
-            {vehicle.brand} • {vehicle.model}
-          </p>
         </div>
 
         {/* Price */}
-        <div className="mb-4">
+        <div className="mb-4 flex justify-between items-center">
           <p className="text-2xl font-bold text-blue-600">
             {formatPrice(carPrice)}
           </p>
+          <div className="text-sm text-gray-600">
+            <span>{timeAgo(String(vehicle.createdAt))}</span>
+          </div>
         </div>
 
         {/* Vehicle Details */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
+        <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+          <div className="flex items-center text-xs text-gray-600">
             <Calendar className="w-4 h-4 mr-2 text-gray-400" />
             <span>{vehicle.manufacturingYear}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Gauge className="w-4 h-4 mr-2 text-gray-400" />
-            <span>{parseFloat(vehicle.kmDriven || '0').toLocaleString()} km</span>
+          <div className="flex items-center text-xs text-gray-600 whitespace-nowrap">
+            <Gauge className="w-3.5 h-3.5 mr-2 text-gray-400" />
+            {/* <span>{parseFloat(vehicle.kmDriven || '0').toLocaleString()} km</span> */}
+            <span>{formatKms(Number(vehicle.kmDriven))}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Fuel className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-xs text-gray-600">
+            <Fuel className="w-3.5 h-3.5 mr-2 text-gray-400" />
             <span>{vehicle.fuelType}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Settings className="w-4 h-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-xs text-gray-600">
+            <Settings className="w-3.5 h-3.5 mr-2 text-gray-400" />
             <span>{vehicle.transmission}</span>
           </div>
         </div>
 
         {/* Location */}
-        <div className="flex items-start text-sm text-gray-600 mb-4">
-          <MapPin className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start text-xs text-gray-600 mb-2">
+          <MapPin className="w-3.5 h-3.5 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
           <span className="line-clamp-2">{vehicle.address?.city}</span>
         </div>
 
         {/* Owner Info */}
-        <div className="border-t border-gray-100 pt-3">
-          <p className="text-sm text-gray-600">
+        <div className="border-t border-gray-300 pt-2">
+          <p className="text-xs text-center text-gray-600">
             <span className="font-medium">Owner:</span> {vehicle.owner}
           </p>
         </div>

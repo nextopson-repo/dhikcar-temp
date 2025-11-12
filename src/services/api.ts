@@ -38,7 +38,8 @@ interface TempCarRaw {
   address?: TempCarAddressRaw;
   user?: TempCarUserRaw;
   message?: string;
-  car?:string
+  car?:string;
+  createdAt?: string;
 }
 
 interface TempCarsResponseRaw {
@@ -169,6 +170,7 @@ export class VehicleApiService {
     if (!res.success || !res.data) return (res as unknown) as ApiResponse<PaginatedResponse<Vehicle>>;
 
     const cars = Array.isArray(res.data.cars) ? res.data.cars : [];
+    console.log("cars:", cars)
     const pagination = res.data.pagination || {};
 
     // Map backend car to frontend Vehicle type minimally
@@ -202,6 +204,7 @@ export class VehicleApiService {
       } : undefined,
       owner: c.user?.fullName || '',
       isActive: true, // Default value since TempCarRaw doesn't have this
+      createdAt: c.createdAt,
     }));
 
     return {

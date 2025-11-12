@@ -39,6 +39,7 @@ export interface Vehicle {
   };
   owner?: string; // userId
   isActive?: boolean;
+  createdAt?: string;
   createdBy?: string;
   updatedBy?: string;
 }

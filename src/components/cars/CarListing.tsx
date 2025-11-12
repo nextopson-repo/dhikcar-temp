@@ -29,9 +29,11 @@ const CarListing: React.FC = () => {
     maxYear: "",
   });
   const [sortBy, setSortBy] = useState<
-    "carPrice" | "registrationYear" | "kmDriven" | "title"
-  >("carPrice");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+    "carPrice" | "registrationYear" | "kmDriven" | "title" | "createdAt"
+  >("createdAt");
+  const [sortOrder, setSortOrder] = useState<
+    "asc" | "desc" | "newest" | "oldest"
+  >("desc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [deleteCarId, setDeleteCarId] = useState<string | null>(null);
@@ -104,11 +106,27 @@ const CarListing: React.FC = () => {
         bValue = (bValue as string).toLowerCase();
       }
 
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
+      // 🕒 Handle "newest" / "oldest" sorting
+      if (sortBy === "createdAt") {
+        const aTime = new Date(a.createdAt ?? 0).getTime();
+        const bTime = new Date(b.createdAt ?? 0).getTime();
+
+        if (sortOrder === "newest") return bTime - aTime;
+        if (sortOrder === "oldest") return aTime - bTime;
       }
+
+      // 🔢 For numeric or text sorting
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
+      return sortOrder === "asc"
+        ? aValue > bValue
+          ? 1
+          : -1
+        : aValue < bValue
+        ? 1
+        : -1;
     });
 
     return filtered;
@@ -144,10 +162,10 @@ const CarListing: React.FC = () => {
         toast.error("Upload failed: result");
         console.error("Upload failed:", result);
       }
-    }catch (error){
+    } catch (error) {
       console.error("Upload error:", error);
       toast.error("Something went wrong while uploading. Please try again.");
-    }finally {
+    } finally {
       setModalState({ isOpen: false, mode: "create", vehicle: null });
     }
   };
@@ -254,6 +272,36 @@ const CarListing: React.FC = () => {
               )}
             </button>
 
+            {/* Newest / Oldest Toggle */}
+            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden text-sm">
+              <button
+                onClick={() => {
+                  setSortBy("createdAt");
+                  setSortOrder("desc");
+                }}
+                className={`px-3 py-1 transition-colors ${
+                  sortBy === "createdAt" && sortOrder === "desc"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                Newest
+              </button>
+              <button
+                onClick={() => {
+                  setSortBy("createdAt");
+                  setSortOrder("asc");
+                }}
+                className={`px-3 py-1 transition-colors ${
+                  sortBy === "createdAt" && sortOrder === "asc"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                Oldest
+              </button>
+            </div>
+
             {/* View Mode */}
             <div className="flex border border-gray-300 rounded-lg overflow-hidden">
               <button
@@ -351,20 +399,6 @@ const CarListing: React.FC = () => {
                   <option value="Semi-Automatic">Semi-Automatic</option>
                 </select>
               </div>
-
-              {/* Condition Filter */}
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-                <select
-                  value={filters.condition}
-                  onChange={(e) => setFilters(prev => ({ ...prev, condition: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">All Conditions</option>
-                  <option value="New">New</option>
-                  <option value="Used">Used</option>
-                </select>
-              </div> */}
 
               {/* Price Range */}
               <div>
@@ -481,7 +515,6 @@ const CarListing: React.FC = () => {
                 vehicle={vehicle}
                 onEdit={handleEditVehicle}
                 onDelete={handleDeleteVehicle}
-                // onView={handleViewVehicle}
               />
             ))}
           {!loading && hasMore && (

@@ -6,7 +6,8 @@ import UsersTab from "./UsersTab";
 import { useUsers, useVehicles } from "../../hooks/useApi";
 
 const AdminPanel: React.FC = () => {
-  const { vehicles } = useVehicles();
+  const { vehicles, total } = useVehicles();
+  // console.log("total cars:",vehicles.length);
   const { users } = useUsers();
   const [activeTab, setActiveTab] = useState<
     "vehicles" | "users" | "dashboard"
@@ -14,7 +15,7 @@ const AdminPanel: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const tabs = [
-    { id: "vehicles", label: "Vehicles", icon: Car, count: vehicles.length },
+    { id: "vehicles", label: "Vehicles", icon: Car, count: total },
     { id: "users", label: "Users", icon: Users, count: users.length },
     { id: "dashboard", label: "Dashboard", icon: BarChart3, count: null },
   ];
@@ -59,7 +60,7 @@ const AdminPanel: React.FC = () => {
                       Total Vehicles
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {vehicles.length}
+                      {total}
                     </p>
                   </div>
                   <Car className="w-8 h-8 text-blue-600" />

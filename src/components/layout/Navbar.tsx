@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
                           {state.currentUser?.name}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {state.currentUser?.email}
+                          {state.currentUser?.mobileNumber}
                         </p>
                       </div>
                       <button
@@ -126,7 +126,7 @@ const Navbar: React.FC = () => {
                       {state.currentUser?.name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {state.currentUser?.email}
+                      {state.currentUser?.mobile}
                     </p>
                   </div>
                   <button

@@ -13,6 +13,7 @@ import {
 import toast from "react-hot-toast";
 import type { Vehicle } from "../../types";
 import useGCarSheetData from "../../hooks/useDCarSheetData";
+import imageCompression from "browser-image-compression";
 
 // Props type definition
 interface CarDetailsFormProps {
@@ -94,7 +95,7 @@ function Dropdown({
             filteredOptions.map((opt) => (
               <li
                 key={opt}
-                onMouseDown={(e) => e.preventDefault()} 
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleOptionSelect(opt)}
                 className={`px-3 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
                   value === opt ? "bg-blue-100 font-medium text-blue-800" : ""
@@ -250,7 +251,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
 
     if (isSubmitting) return;
 
-    // Form validation
+    // Validation part same rehne de
     if (!formData.brand.trim()) {
       toast.error("Please select a car brand");
       return;
@@ -266,11 +267,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
       return;
     }
 
-    if (
-      // !formData.addressState ||
-      !formData.addressCity
-      // !formData.addressLocality
-    ) {
+    if (!formData.addressCity) {
       toast.error(
         "Please select complete address details (State, City, and Locality)"
       );
@@ -282,7 +279,6 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
       return;
     }
 
-    // Check user authentication
     const userData = localStorage.getItem("user");
     if (!userData) {
       toast.error("Please log in to list your car");
@@ -303,19 +299,23 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
       return;
     }
 
+    // 👉 Image compression options
+    const compressionOptions = {
+      maxSizeMB: 1, // compress under 1MB
+      maxWidthOrHeight: 1080,
+      useWebWorker: true,
+    };
+
     // Create FormData for backend
     const formDataToSend = new FormData();
 
-    // Required fields according to backend interface
     formDataToSend.append("userId", parsedUser.id);
     formDataToSend.append("addressState", "c");
     formDataToSend.append("addressCity", formData.addressCity);
     formDataToSend.append("addressLocality", "c");
 
-    // Car details
     const carTitle = `${formData.brand} ${formData.model}`.trim();
     formDataToSend.append("title", carTitle);
-    // formDataToSend.append("carName", carName);
     formDataToSend.append("brand", formData.brand);
     formDataToSend.append("model", formData.model);
     formDataToSend.append("variant", formData.variant || "");
@@ -337,21 +337,31 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
     formDataToSend.append("carPrice", formData.carPrice);
     formDataToSend.append("description", formData.description);
 
-    // Add images - backend expects 'images' field with array of files
-    images.forEach((file) => {
-      formDataToSend.append("images", file);
-    });
+    // 🧠 Compress each image before appending
+    try {
+      for (const file of images) {
+        const compressedFile = await imageCompression(file, compressionOptions);
+        formDataToSend.append("images", compressedFile);
+        console.log(`${compressedFile.name}: ${compressedFile.size / 1024} KB`); // debugging
+      }
+    } catch (err) {
+      console.error("Image compression failed:", err);
+      toast.error("Image compression failed. Try smaller images.");
+      return;
+    }
 
     console.log("FormData being sent to backend:");
     formDataToSend.forEach((value, key) => {
       console.log(`${key}:`, value);
     });
 
+
     setIsSubmitting(true);
     try {
       await onSave(formDataToSend);
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Something went wrong while submitting.");
     } finally {
       setIsSubmitting(false);
     }

@@ -170,7 +170,7 @@ export class VehicleApiService {
     if (!res.success || !res.data) return (res as unknown) as ApiResponse<PaginatedResponse<Vehicle>>;
 
     const cars = Array.isArray(res.data.cars) ? res.data.cars : [];
-    console.log("cars:", cars)
+    // console.log("cars:", cars)
     const pagination = res.data.pagination || {};
 
     // Map backend car to frontend Vehicle type minimally
@@ -228,9 +228,9 @@ export class VehicleApiService {
     return apiClient.post<Vehicle>('/vehicles', vehicle);
   }
 
-  // static async updateVehicle(id: string, vehicle: Partial<Vehicle>): Promise<ApiResponse<Vehicle>> {
-  //   return apiClient.put<Vehicle>(`/vehicles/${id}`, vehicle);
-  // }
+  static async updateVehicle(id: string, vehicle: Partial<Vehicle>): Promise<ApiResponse<Vehicle>> {
+    return apiClient.put<Vehicle>(`/vehicles/${id}`, vehicle);
+  }
 
   static async deleteVehicle(id: string): Promise<ApiResponse<void>> {
     return apiClient.delete<void>(`/temp/cars/${id}`);
@@ -252,6 +252,7 @@ export class VehicleApiService {
           });
 
       const data = await response.json();
+      console.log("upload Img res:", data)
 
       if (!response.ok) {
         throw new Error(data.message || 'Upload failed');
@@ -277,7 +278,9 @@ export class VehicleApiService {
       const sessionToken = localStorage.getItem('sessionToken') || localStorage.getItem('authToken');
       
       // Build headers - DO NOT set Content-Type for FormData, browser will set it with boundary
-      const headers: Record<string, string> = {};
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      };
       
       if (sessionToken) {
         headers.Authorization = `Bearer ${sessionToken}`;
@@ -291,6 +294,7 @@ export class VehicleApiService {
       });
 
       const data = await response.json();
+      console.log("create car api:", data)
 
       // Backend returns status 201 on success: { message: string, car: CarResponse }
       if (response.status === 201 && data.car) {

@@ -45,11 +45,9 @@ export const {
   logout,
   addUser,
   deleteUser,
-  addVehicle,
+//   addVehicle,
   deleteVehicle,
   updateVehicle,
 } = appSlice.actions;
 
 export default appSlice.reducer;
-
-

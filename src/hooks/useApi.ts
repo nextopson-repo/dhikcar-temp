@@ -199,28 +199,28 @@ export function useVehicleOperations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createVehicle = useCallback(async (vehicle: Omit<Vehicle, "id">) => {
-    setLoading(true);
-    setError(null);
+  // const createVehicle = useCallback(async (vehicle: Omit<Vehicle, "id">) => {
+  //   setLoading(true);
+  //   setError(null);
 
-    try {
-      const response = await VehicleApiService.createVehicle(vehicle);
+  //   try {
+  //     const response = await VehicleApiService.createVehicle(vehicle);
 
-      if (response.success) {
-        return response.data;
-      } else {
-        setError(response.error || "Failed to create vehicle");
-        return null;
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to create vehicle";
-      setError(errorMessage);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  //     if (response.success) {
+  //       return response.data;
+  //     } else {
+  //       setError(response.error || "Failed to create vehicle");
+  //       return null;
+  //     }
+  //   } catch (err) {
+  //     const errorMessage =
+  //       err instanceof Error ? err.message : "Failed to create vehicle";
+  //     setError(errorMessage);
+  //     return null;
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   const deleteVehicle = useCallback(async (id: string) => {
     setLoading(true);
@@ -264,6 +264,7 @@ export function useVehicleOperations() {
 
       // Only return success if we have both success flag and car data
       if (response.success && response.data && response.data.car) {
+         toast.success("Car uploaded successfully!");
         console.log("Upload successful:", response.data);
         return response.data; // Returns { car: TempCarRaw }
       } else {
@@ -286,7 +287,7 @@ export function useVehicleOperations() {
   return {
     loading,
     error: error ? error : null,
-    createVehicle,
+    // createVehicle,
     // updateVehicle,
     deleteVehicle,
     // uploadImage,

@@ -156,23 +156,23 @@ const CarListing: React.FC = () => {
       
       // Check if result.car is a non-empty object
       if (result && typeof result === 'object' && result.car && typeof result.car === 'object' && Object.keys(result.car).length > 0) {
-        toast.success("Vehicle uploaded successfully!");
+        // toast.success("Vehicle uploaded successfully!");
         fetchMore();
         setModalState({ isOpen: false, mode: "create", vehicle: null });
       } else {
         toast.error("Upload failed. Please try again.");
         console.error("Upload failed:", result);
-        window.location.reload();
+        // window.location.reload();
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Something went wrong while uploading. Please try again.";
       toast.error(errorMessage);
       console.error("Upload error:", error);
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("sessionToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      window.location.reload();
+      // localStorage.removeItem("isAuthenticated");
+      // localStorage.removeItem("sessionToken");
+      // localStorage.removeItem("user");
+      // localStorage.removeItem("token");
+      // window.location.reload();
     }
   };
 

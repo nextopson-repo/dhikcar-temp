@@ -214,7 +214,7 @@ const CarListing: React.FC = () => {
       </div>
 
       {/* Search and Controls */}
-      <div className="bg-white rounded-md shadow-sm lg:border lg:border-gray-200 lg:p-2 ">
+      <div className="bg-white rounded-md shadow-sm lg:border lg:border-gray-200 lg:p-2">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="lg:flex-1 relative w-auto mx-4 lg:mx-0">
@@ -229,7 +229,7 @@ const CarListing: React.FC = () => {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-2 px-4 lg:px-0">
+          <div className="flex items-center gap-2 px-4 lg:px-0" >
             {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -279,7 +279,7 @@ const CarListing: React.FC = () => {
             </button>
 
             {/* Newest / Oldest Toggle */}
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden text-sm">
+            <div className="hidden lg:flex items-center border border-gray-300 rounded-lg overflow-hidden text-sm">
               <button
                 onClick={() => {
                   setSortBy("createdAt");
@@ -336,7 +336,7 @@ const CarListing: React.FC = () => {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mx-6 mt-4 pt-4 border-t border-gray-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Brand Filter */}
               <div>
@@ -510,7 +510,7 @@ const CarListing: React.FC = () => {
           className={
             viewMode === "grid"
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 lg:px-0"
-              : "space-y-4"
+              : "space-y-4 px-4"
           }
         >
           {filteredAndSortedVehicles

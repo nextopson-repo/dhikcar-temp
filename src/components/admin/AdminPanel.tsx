@@ -50,7 +50,7 @@ const AdminPanel: React.FC = () => {
         return <UsersTab />;
       case "dashboard":
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 max-w-screen">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -124,7 +124,7 @@ const AdminPanel: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="flex mx-auto max-w-7xl lg:px-6">
+      <div className="lg:flex mx-auto lg:max-w-7xl lg:px-6">
         {/* Sidebar */}
         <div
           className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${

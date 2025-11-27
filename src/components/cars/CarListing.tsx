@@ -193,7 +193,7 @@ const CarListing: React.FC = () => {
     Object.values(filters).some((value) => value !== "") || searchTerm !== "";
 
   return (
-    <div className="space-y-6 mt-4 lg:mt-0">
+    <div className="space-y-6 mt-4 lg:mt-0 max-w-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 lg:px-0">
         <div>

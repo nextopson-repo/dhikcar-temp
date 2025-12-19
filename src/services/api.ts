@@ -1,5 +1,5 @@
-import type { Vehicle, User } from '../types';
-import { API_CONFIG, API_ENDPOINTS, DEFAULT_HEADERS } from '../config/api';
+import type { Vehicle, User } from "../types";
+import { API_CONFIG, API_ENDPOINTS, DEFAULT_HEADERS } from "../config/api";
 
 // API Response Types
 interface ApiResponse<T> {
@@ -18,9 +18,18 @@ interface PaginatedResponse<T> {
 }
 
 // Backend temp cars shapes
-interface TempCarImageRaw { id?: string; imageKey?: string }
-interface TempCarAddressRaw { locality?: string; city?: string; state?: string }
-interface TempCarUserRaw { fullName?: string }
+interface TempCarImageRaw {
+  id?: string;
+  imageKey?: string;
+}
+interface TempCarAddressRaw {
+  locality?: string;
+  city?: string;
+  state?: string;
+}
+interface TempCarUserRaw {
+  fullName?: string;
+}
 interface TempCarRaw {
   id: string;
   title?: string;
@@ -38,13 +47,18 @@ interface TempCarRaw {
   address?: TempCarAddressRaw;
   user?: TempCarUserRaw;
   message?: string;
-  car?:string;
+  car?: string;
   createdAt?: string;
 }
 
 interface TempCarsResponseRaw {
   cars: TempCarRaw[];
-  pagination: { total?: number; page?: number; limit?: number; totalPages?: number };
+  pagination: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    totalPages?: number;
+  };
   message?: string;
 }
 
@@ -74,7 +88,9 @@ class ApiClient {
         ...(options.headers as Record<string, string> | undefined),
       };
 
-      const sessionToken = localStorage.getItem('sessionToken') || localStorage.getItem('authToken');
+      const sessionToken =
+        localStorage.getItem("sessionToken") ||
+        localStorage.getItem("authToken");
       if (sessionToken) {
         headers.Authorization = `Bearer ${sessionToken}`;
       }
@@ -82,40 +98,55 @@ class ApiClient {
       config.headers = headers;
 
       const response = await fetch(url, config);
-      const data = await response.json() as { data?: T; message?: string };
+      const data = (await response.json()) as { data?: T; message?: string };
 
       if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          data.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       return {
         success: true,
-        data: data.data || data as T,
+        data: data.data || (data as T),
         message: data.message,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+        error:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
       };
     }
   }
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
-  async post<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
+  // async post<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
+  //   return this.request<T>(endpoint, {
+  //     method: "POST",
+  //     body: JSON.stringify(data),
+  //     mode: "cors",
+  //   });
+  // }
+
+  async post<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
+      method: "POST",
+      ...(data !== undefined && {
+        body: JSON.stringify(data),
+      }),
       mode: "cors",
     });
   }
 
   async put<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
       mode: "cors",
     });
@@ -123,14 +154,14 @@ class ApiClient {
 
   async patch<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(data),
       mode: "cors",
     });
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 
@@ -152,22 +183,25 @@ export class VehicleApiService {
     minYear?: number;
     maxYear?: number;
     sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: "asc" | "desc";
   }): Promise<ApiResponse<PaginatedResponse<Vehicle>>> {
     const queryParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           queryParams.append(key, value.toString());
         }
       });
     }
 
-    const endpoint = `${API_ENDPOINTS.GET_CARS}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const endpoint = `${API_ENDPOINTS.GET_CARS}${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
     // We expect backend to return { cars: [...], pagination: {...} }
-    const res = await apiClient.get<TempCarsResponseRaw>(endpoint);
-    if (!res.success || !res.data) return (res as unknown) as ApiResponse<PaginatedResponse<Vehicle>>;
+    const res = await apiClient.post<TempCarsResponseRaw>(endpoint, {});
+    if (!res.success || !res.data)
+      return res as unknown as ApiResponse<PaginatedResponse<Vehicle>>;
 
     const cars = Array.isArray(res.data.cars) ? res.data.cars : [];
     // console.log("cars:", cars)
@@ -176,33 +210,37 @@ export class VehicleApiService {
     // Map backend car to frontend Vehicle type minimally
     const mapped: Vehicle[] = cars.map((c) => ({
       id: c.id,
-      title: c.title || c.carName || '',
-      carName: c.carName || '',
-      brand: c.brand || '',
-      model: c.model || '',
-      variant: '', // TempCarRaw doesn't have variant
-      bodyType: '', // TempCarRaw doesn't have bodyType
-      fuelType: (c.fuelType as 'Petrol' | 'Diesel' | 'CNG' | 'Electric') || 'Petrol',
-      transmission: (c.transmission as 'Manual' | 'Automatic') || 'Manual',
-      ownership: '1st', // Default value since TempCarRaw doesn't have this
+      title: c.title || c.carName || "",
+      carName: c.carName || "",
+      brand: c.brand || "",
+      model: c.model || "",
+      variant: "", // TempCarRaw doesn't have variant
+      bodyType: "", // TempCarRaw doesn't have bodyType
+      fuelType:
+        (c.fuelType as "Petrol" | "Diesel" | "CNG" | "Electric") || "Petrol",
+      transmission: (c.transmission as "Manual" | "Automatic") || "Manual",
+      ownership: "1st", // Default value since TempCarRaw doesn't have this
       manufacturingYear: c.manufacturingYear || new Date().getFullYear(),
       registrationYear: c.registrationYear || new Date().getFullYear(),
-      kmDriven: c.kmDriven?.toString() || '0',
-      seats: '4', // Default value since TempCarRaw doesn't have this
-      isSale: 'Sell', // Default value since TempCarRaw doesn't have this
-      carPrice: c.carPrice?.toString() || '0',
-      image: c.carImages?.[0]?.imageKey || c.images?.[0] || '',
-      carImages: c.carImages?.map(img => ({
-        id: img.id || '',
-        imageKey: new File([], img.imageKey || ''),
-        presignedUrl: img.imageKey
-      })) || [],
-      address: c.address ? {
-        state: c.address.state || '',
-        city: c.address.city || '',
-        locality: c.address.locality || ''
-      } : undefined,
-      owner: c.user?.fullName || '',
+      kmDriven: c.kmDriven?.toString() || "0",
+      seats: "4", // Default value since TempCarRaw doesn't have this
+      isSale: "Sell", // Default value since TempCarRaw doesn't have this
+      carPrice: c.carPrice?.toString() || "0",
+      image: c.carImages?.[0]?.imageKey || c.images?.[0] || "",
+      carImages:
+        c.carImages?.map((img) => ({
+          id: img.id || "",
+          imageKey: new File([], img.imageKey || ""),
+          presignedUrl: img.imageKey,
+        })) || [],
+      address: c.address
+        ? {
+            state: c.address.state || "",
+            city: c.address.city || "",
+            locality: c.address.locality || "",
+          }
+        : undefined,
+      owner: c.user?.fullName || "",
       isActive: true, // Default value since TempCarRaw doesn't have this
       createdAt: c.createdAt,
     }));
@@ -221,14 +259,19 @@ export class VehicleApiService {
   }
 
   static async getVehicleById(id: string): Promise<ApiResponse<Vehicle>> {
-    return apiClient.get<Vehicle>(`/vehicles/${id}`);
+    return apiClient.post<Vehicle>(`/vehicles/${id}`);
   }
 
-  static async createVehicle(vehicle: Omit<Vehicle, 'id'>): Promise<ApiResponse<Vehicle>> {
-    return apiClient.post<Vehicle>('/vehicles', vehicle);
+  static async createVehicle(
+    vehicle: Omit<Vehicle, "id">
+  ): Promise<ApiResponse<Vehicle>> {
+    return apiClient.post<Vehicle>("/vehicles", vehicle);
   }
 
-  static async updateVehicle(id: string, vehicle: Partial<Vehicle>): Promise<ApiResponse<Vehicle>> {
+  static async updateVehicle(
+    id: string,
+    vehicle: Partial<Vehicle>
+  ): Promise<ApiResponse<Vehicle>> {
     return apiClient.put<Vehicle>(`/vehicles/${id}`, vehicle);
   }
 
@@ -236,26 +279,31 @@ export class VehicleApiService {
     return apiClient.delete<void>(`/temp/cars/${id}`);
   }
 
-  static async uploadVehicleImage(file: File): Promise<ApiResponse<{ url: string }>> {
+  static async uploadVehicleImage(
+    file: File
+  ): Promise<ApiResponse<{ url: string }>> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-        try {
-          const sessionToken = localStorage.getItem('sessionToken');
-          const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.UPLOAD_IMAGE}`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${sessionToken}`,
-            },
-            body: formData,
-            mode: "cors",
-          });
+    try {
+      const sessionToken = localStorage.getItem("sessionToken");
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.UPLOAD_IMAGE}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: formData,
+          mode: "cors",
+        }
+      );
 
       const data = await response.json();
-      console.log("upload Img res:", data)
+      console.log("upload Img res:", data);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Upload failed');
+        throw new Error(data.message || "Upload failed");
       }
 
       return {
@@ -266,35 +314,42 @@ export class VehicleApiService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed',
+        error: error instanceof Error ? error.message : "Upload failed",
       };
     }
   }
 
   // Upload car to temp system
-  static async uploadCar(formData: FormData): Promise<ApiResponse<{ car: TempCarRaw }>> {
+  static async uploadCar(
+    formData: FormData
+  ): Promise<ApiResponse<{ car: TempCarRaw }>> {
     try {
       // Get session token for authorization
-      const sessionToken = localStorage.getItem('sessionToken') || localStorage.getItem('authToken');
-      
+      const sessionToken =
+        localStorage.getItem("sessionToken") ||
+        localStorage.getItem("authToken");
+
       // Build headers - DO NOT set Content-Type for FormData, browser will set it with boundary
       const headers: Record<string, string> = {
         Accept: "application/json",
       };
-      
+
       if (sessionToken) {
         headers.Authorization = `Bearer ${sessionToken}`;
       }
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.UPLOAD_CAR}`, {
-        method: 'POST',
-        headers: headers,
-        body: formData, // Send FormData directly, don't convert to JSON
-        mode: "cors",
-      });
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.UPLOAD_CAR}`,
+        {
+          method: "POST",
+          headers: headers,
+          body: formData, // Send FormData directly, don't convert to JSON
+          mode: "cors",
+        }
+      );
 
       const data = await response.json();
-      console.log("create car api:", data)
+      console.log("create car api:", data);
 
       // Backend returns status 201 on success: { message: string, car: CarResponse }
       if (response.status === 201 && data.car) {
@@ -310,7 +365,7 @@ export class VehicleApiService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Car upload failed',
+        error: error instanceof Error ? error.message : "Car upload failed",
       };
     }
   }
@@ -325,19 +380,36 @@ export class UserApiService {
     type?: string;
   }): Promise<ApiResponse<PaginatedResponse<User>>> {
     const queryParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           queryParams.append(key, value.toString());
         }
       });
     }
 
-    const endpoint = `/temp/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const endpoint = `/temp/users/all${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
     // Backend likely returns { users: [...], pagination: {...} }
-    const res = await apiClient.get<{ users?: User[]; pagination?: { total?: number; page?: number; limit?: number; totalPages?: number }; message?: string }>(endpoint);
-    if (!res.success || !res.data) return (res as unknown) as ApiResponse<PaginatedResponse<User>>;
+    const payload = {
+      page: 1,
+      limit: 10,
+    };
+    const res = await apiClient.post<{
+      users?: User[];
+      pagination?: {
+        total?: number;
+        page?: number;
+        limit?: number;
+        totalPages?: number;
+      };
+      message?: string;
+    }>(endpoint, payload);
+    // const res = await apiClient.post<{ users?: User[]; pagination?: { total?: number; page?: number; limit?: number; totalPages?: number }; message?: string }>(endpoint);
+    if (!res.success || !res.data)
+      return res as unknown as ApiResponse<PaginatedResponse<User>>;
 
     const users = Array.isArray(res.data.users) ? res.data.users : [];
     const pagination = res.data.pagination || {};
@@ -356,14 +428,19 @@ export class UserApiService {
   }
 
   static async getUserById(id: string): Promise<ApiResponse<User>> {
-    return apiClient.get<User>(`/users/${id}`);
+    return apiClient.post<User>(`/users/${id}`);
   }
 
-  static async createUser(user: Omit<User, 'id' | 'created'>): Promise<ApiResponse<User>> {
-    return apiClient.post<User>('/users', user);
+  static async createUser(
+    user: Omit<User, "id" | "created">
+  ): Promise<ApiResponse<User>> {
+    return apiClient.post<User>("/users", user);
   }
 
-  static async updateUser(id: string, user: Partial<User>): Promise<ApiResponse<User>> {
+  static async updateUser(
+    id: string,
+    user: Partial<User>
+  ): Promise<ApiResponse<User>> {
     return apiClient.put<User>(`/users/${id}`, user);
   }
 
@@ -374,83 +451,103 @@ export class UserApiService {
 
 // Auth API Service
 export class AuthApiService {
-      // Signup user
-      static async signup(userData: {
-        fullName: string;
-        mobileNumber: string;
-        userType: 'Owner' | 'Dealer' | 'EndUser';
+  // Signup user
+  static async signup(userData: {
+    fullName: string;
+    mobileNumber: string;
+    userType: "Owner" | "Dealer" | "EndUser";
 
-        addressCity: string;
+    addressCity: string;
+  }): Promise<ApiResponse<{ user: User }>> {
+    return apiClient.post<{ user: User }>(
+      API_ENDPOINTS.SIGNUP_SEND_OTP,
+      userData
+    );
+  }
 
-      }): Promise<ApiResponse<{ user: User }>> {
-        return apiClient.post<{ user: User }>(API_ENDPOINTS.SIGNUP_SEND_OTP, userData);
-      }
+  // Login user
+  static async login(mobileNumber: string): Promise<
+    ApiResponse<{
+      user: User;
+      sessionToken: string;
+      loginTime: string;
+    }>
+  > {
+    return apiClient.post<{
+      user: User;
+      sessionToken: string;
+      loginTime: string;
+    }>(API_ENDPOINTS.LOGIN_SEND_OTP, { mobileNumber });
+  }
 
-      // Login user
-      static async login(mobileNumber: string): Promise<ApiResponse<{ 
-        user: User; 
-        sessionToken: string; 
-        loginTime: string; 
-      }>> {
-        return apiClient.post<{ 
-          user: User; 
-          sessionToken: string; 
-          loginTime: string; 
-        }>(API_ENDPOINTS.LOGIN_SEND_OTP, { mobileNumber });
-      }
-
-      // Legacy methods for backward compatibility
-      static async loginWithEmail(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
-        return apiClient.post<{ user: User; token: string }>('/auth/login', { email, password });
-      }
+  // Legacy methods for backward compatibility
+  static async loginWithEmail(
+    email: string,
+    password: string
+  ): Promise<ApiResponse<{ user: User; token: string }>> {
+    return apiClient.post<{ user: User; token: string }>("/auth/login", {
+      email,
+      password,
+    });
+  }
 
   static async register(userData: {
     name: string;
     email: string;
     password: string;
     mobile: string;
-    type: 'Owner' | 'Dealer' | 'EndUser';
+    type: "Owner" | "Dealer" | "EndUser";
   }): Promise<ApiResponse<{ user: User; token: string }>> {
-    return apiClient.post<{ user: User; token: string }>('/auth/register', userData);
+    return apiClient.post<{ user: User; token: string }>(
+      "/auth/register",
+      userData
+    );
   }
 
   static async logout(): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/auth/logout', {});
+    return apiClient.post<void>("/auth/logout", {});
   }
 
   static async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    return apiClient.post<{ token: string }>('/auth/refresh', {});
+    return apiClient.post<{ token: string }>("/auth/refresh", {});
   }
 
   static async forgotPassword(email: string): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/auth/forgot-password', { email });
+    return apiClient.post<void>("/auth/forgot-password", { email });
   }
 
-  static async resetPassword(token: string, password: string): Promise<ApiResponse<void>> {
-    return apiClient.post<void>('/auth/reset-password', { token, password });
+  static async resetPassword(
+    token: string,
+    password: string
+  ): Promise<ApiResponse<void>> {
+    return apiClient.post<void>("/auth/reset-password", { token, password });
   }
 }
 
 // Statistics API Service
 export class StatsApiService {
-  static async getDashboardStats(): Promise<ApiResponse<{
-    totalVehicles: number;
-    totalUsers: number;
-    totalRevenue: number;
-    recentVehicles: Vehicle[];
-    topBrands: { brand: string; count: number }[];
-  }>> {
-    return apiClient.get('/stats/dashboard');
+  static async getDashboardStats(): Promise<
+    ApiResponse<{
+      totalVehicles: number;
+      totalUsers: number;
+      totalRevenue: number;
+      recentVehicles: Vehicle[];
+      topBrands: { brand: string; count: number }[];
+    }>
+  > {
+    return apiClient.post("/stats/dashboard");
   }
 
-  static async getVehicleStats(): Promise<ApiResponse<{
-    byCondition: { condition: string; count: number }[];
-    byFuelType: { fuelType: string; count: number }[];
-    byTransmission: { transmission: string; count: number }[];
-    averagePrice: number;
-    priceRange: { min: number; max: number };
-  }>> {
-    return apiClient.get('/stats/vehicles');
+  static async getVehicleStats(): Promise<
+    ApiResponse<{
+      byCondition: { condition: string; count: number }[];
+      byFuelType: { fuelType: string; count: number }[];
+      byTransmission: { transmission: string; count: number }[];
+      averagePrice: number;
+      priceRange: { min: number; max: number };
+    }>
+  > {
+    return apiClient.post("/stats/vehicles");
   }
 }
 
@@ -458,18 +555,20 @@ export class StatsApiService {
 export const handleApiError = (error: string): string => {
   // Map common API errors to user-friendly messages
   const errorMessages: Record<string, string> = {
-    'Unauthorized': 'Please log in to continue',
-    'Forbidden': 'You do not have permission to perform this action',
-    'Not Found': 'The requested resource was not found',
-    'Validation Error': 'Please check your input and try again',
-    'Network Error': 'Please check your internet connection',
+    Unauthorized: "Please log in to continue",
+    Forbidden: "You do not have permission to perform this action",
+    "Not Found": "The requested resource was not found",
+    "Validation Error": "Please check your input and try again",
+    "Network Error": "Please check your internet connection",
   };
 
-  return errorMessages[error] || error || 'Something went wrong. Please try again.';
+  return (
+    errorMessages[error] || error || "Something went wrong. Please try again."
+  );
 };
 
 export const isNetworkError = (error: string): boolean => {
-  return error.includes('Network Error') || error.includes('fetch');
+  return error.includes("Network Error") || error.includes("fetch");
 };
 
 // Export the API client for custom requests

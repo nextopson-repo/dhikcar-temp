@@ -14,9 +14,9 @@ export const API_ENDPOINTS = {
   LOGIN_VERIFY_OTP: '/temp/login/verify-otp',
   
   // Car endpoints
-  UPLOAD_CAR: '/temp/cars',
+  UPLOAD_CAR: '/temp/cars/create',
   UPLOAD_IMAGE: '/temp/upload-car-images-with-rekognition',
-  GET_CARS: '/temp/cars',
+  GET_CARS: '/temp/cars/all',
   DELETE_CAR: '/temp/cars',
   
   // User endpoints

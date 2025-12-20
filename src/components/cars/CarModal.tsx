@@ -142,6 +142,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
     carPrice: "",
     kmDriven: "",
     seats: "4",
+    // isAssisted: false, //assisted
   });
 
   // google car(brand, model, variant)
@@ -205,6 +206,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
         kmDriven: vehicle.kmDriven || "",
         seats: vehicle.seats || "4",
         description: vehicle.description || "",
+        // isAssisted: vehicle.isAssisted ?? false,
       });
 
       if (vehicle.carImages && vehicle.carImages.length > 0) {
@@ -336,6 +338,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
     formDataToSend.append("isSale", formData.isSale);
     formDataToSend.append("carPrice", formData.carPrice);
     formDataToSend.append("description", formData.description);
+    // formDataToSend.append("isAssisted", formData.isAssisted ? "true" : "false");
 
     // 🧠 Compress each image before appending
     try {
@@ -354,7 +357,6 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
     formDataToSend.forEach((value, key) => {
       console.log(`${key}:`, value);
     });
-
 
     setIsSubmitting(true);
     try {
@@ -411,7 +413,7 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
               <div className="flex items-center gap-2 mb-6">
                 <MapPin className="w-5 h-5 text-blue-600" />
                 <h2 className="text-xl font-semibold text-gray-800">
-                  Car Location Details
+                  Car Location And Assisted Details
                 </h2>
               </div>
 
@@ -443,6 +445,24 @@ const CarDetailsForm: React.FC<CarDetailsFormProps> = ({
                     }))
                   }
                 />
+                {/* Assisted Checkbox 
+                <div className="space-y-2">
+                  <label htmlFor="">Assisted (Only For assisted Cars)</label>
+                  <div className="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-700 pt-1.5">
+                    <input
+                      type="checkbox"
+                      checked={formData.isAssisted}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isAssisted: e.target.checked,
+                        }))
+                      }
+                      className="w-5 h-5 accent-blue-600"
+                    />
+                    Mark this box If Car Is Assisted
+                  </div>
+                </div>*/}
               </div>
             </div>
 

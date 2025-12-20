@@ -21,9 +21,11 @@ const AdminPanel: React.FC = () => {
   ];
 
   const renderTabContent = () => {
+    const num = vehicles.reduce(
+      (sum, v) => sum + parseFloat(v.carPrice || "0"),
+      0
+    );
 
-    const num = vehicles.reduce((sum, v) => sum + parseFloat(v.carPrice || '0'), 0);
-    
     function formatCompactINR(num: number) {
       if (isNaN(num)) return "₹0";
       num = Math.floor(num);
@@ -59,9 +61,7 @@ const AdminPanel: React.FC = () => {
                     <p className="text-sm font-medium text-gray-600">
                       Total Vehicles
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {total}
-                    </p>
+                    <p className="text-2xl font-bold text-gray-900">{total}</p>
                   </div>
                   <Car className="w-8 h-8 text-blue-600" />
                 </div>
@@ -103,8 +103,10 @@ const AdminPanel: React.FC = () => {
                       ₹
                       {vehicles.length > 0
                         ? Math.round(
-                            vehicles.reduce((sum, v) => sum + parseFloat(v.carPrice || '0'), 0) /
-                              vehicles.length
+                            vehicles.reduce(
+                              (sum, v) => sum + parseFloat(v.carPrice || "0"),
+                              0
+                            ) / vehicles.length
                           ).toLocaleString()
                         : 0}
                     </p>
@@ -127,9 +129,12 @@ const AdminPanel: React.FC = () => {
       <div className="lg:flex mx-auto lg:max-w-7xl lg:px-6">
         {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`
+    fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg
+    transform transition-transform duration-300 ease-in-out
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+    lg:translate-x-0 lg:sticky lg:top-16 lg:h-screen
+  `}
         >
           <div className="flex items-center justify-between h-20 px-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Admin Panel</h2>

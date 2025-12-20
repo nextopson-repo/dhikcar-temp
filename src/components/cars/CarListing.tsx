@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Plus,
   Search,
@@ -132,6 +132,60 @@ const CarListing: React.FC = () => {
     return filtered;
   }, [vehicles, searchTerm, filters, sortBy, sortOrder]);
 
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const isFetchingRef = useRef(false);
+  const scrollPositionRef = useRef(0);
+  useEffect(() => {
+    if (!hasMore) return;
+
+    // Clean old observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      async (entries) => {
+        const firstEntry = entries[0];
+
+        // HARD GUARDS 🚧
+        if (!firstEntry.isIntersecting) return;
+        if (loading) return;
+        if (isFetchingRef.current) return;
+        if (!hasMore) return;
+
+        try {
+          isFetchingRef.current = true;
+          scrollPositionRef.current = window.scrollY; // Save scroll position
+          await fetchMore();
+        } finally {
+          isFetchingRef.current = false;
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px", // smoother preload
+        threshold: 0,
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [hasMore, fetchMore, loading]);
+
+  // Restore scroll position after data loads
+  useEffect(() => {
+    if (scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current);
+      scrollPositionRef.current = 0; // Reset after restoring
+    }
+  }, [vehicles.length]);
+
   const handleCreateVehicle = () => {
     setModalState({ isOpen: true, mode: "create", vehicle: null });
   };
@@ -153,9 +207,15 @@ const CarListing: React.FC = () => {
 
     try {
       const result = await uploadCar(formDataToSend);
-      
+
       // Check if result.car is a non-empty object
-      if (result && typeof result === 'object' && result.car && typeof result.car === 'object' && Object.keys(result.car).length > 0) {
+      if (
+        result &&
+        typeof result === "object" &&
+        result.car &&
+        typeof result.car === "object" &&
+        Object.keys(result.car).length > 0
+      ) {
         // toast.success("Vehicle uploaded successfully!");
         fetchMore();
         setModalState({ isOpen: false, mode: "create", vehicle: null });
@@ -165,7 +225,10 @@ const CarListing: React.FC = () => {
         // window.location.reload();
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Something went wrong while uploading. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while uploading. Please try again.";
       toast.error(errorMessage);
       console.error("Upload error:", error);
       // localStorage.removeItem("isAuthenticated");
@@ -229,7 +292,7 @@ const CarListing: React.FC = () => {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-2 px-4 lg:px-0" >
+          <div className="flex items-center gap-2 px-4 lg:px-0">
             {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -495,17 +558,17 @@ const CarListing: React.FC = () => {
       </div>
 
       {/* Loading / Error */}
-      {loading && (
+      {/* {loading && (
         <div className="text-center py-12 text-gray-600">
           Loading vehicles...
         </div>
       )}
       {error && !loading && (
         <div className="text-center py-12 text-red-600">{error}</div>
-      )}
+      )} */}
 
       {/* Vehicle Grid/List */}
-      {!loading && !error && filteredAndSortedVehicles.length > 0 ? (
+      {(!loading && !error && filteredAndSortedVehicles.length > 0) && (
         <div
           className={
             viewMode === "grid"
@@ -523,37 +586,15 @@ const CarListing: React.FC = () => {
                 onDelete={handleDeleteVehicle}
               />
             ))}
-          {!loading && hasMore && (
-            <div className="col-span-full flex justify-center mt-2">
-              <button
-                onClick={fetchMore}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Load more
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="text-center py-12 px-4 lg:px-0">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No vehicles found
-          </h3>
-          <p className="text-gray-500 mb-4">
-            {hasActiveFilters
-              ? "Try adjusting your filters or search terms"
-              : "Get started by adding your first vehicle"}
-          </p>
-          {!hasActiveFilters && (
-            <button
-              onClick={handleCreateVehicle}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          {hasMore && (
+            <div
+              ref={loadMoreRef}
+              className="h-12 col-span-full flex items-center justify-center"
             >
-              Add Vehicle
-            </button>
+              <span className={`text-xs text-gray-400 ${loading ? 'animate-pulse' : ''}`}>
+                {loading ? 'Loading more vehicles...' : 'Scroll for more'}
+              </span>
+            </div>
           )}
         </div>
       )}
